@@ -129,10 +129,7 @@ while done==False:
             if event.key == pygame.K_SPACE:
                 x = x0
                 y = y0
-                xd = 0
-                yd = 0
-                xdd = 0
-                ydd = 0
+                xd,yd,xdd,ydd = 0,0,0,0
                 xn,xp,yn,yp = 0,0,0,0
                 score = score-1
                 if (score<0):
