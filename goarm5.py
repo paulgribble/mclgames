@@ -1,6 +1,8 @@
 # Paul Gribble
 # paul [at] gribblelab [dot] org
 # Feb 12, 2013
+#
+# center-out 8 tgt task
 
 import pygame
 import numpy
@@ -19,7 +21,7 @@ green    = (   0, 255,   0)
 red      = ( 255,   0,   0)
 
 targetsize = 20 # radius
-ballsize = 5 # radius
+ballsize = 5    # radius
 
 # Function for computing distance to target
 def dist_to_target(xh,hy,tx,ty):
@@ -45,18 +47,6 @@ def joint_to_xy(sx,sy,s,e,l1,l2,ppm):
 # Function to draw arm
 def draw_arm(screen,sx,sy,ex,ey,hx,hy,l1,l2):
     pygame.draw.lines(screen,black,False,[(sx,sy),(ex,ey),(hx,hy)],1)
-
-# Function to get a new random target
-def getnewtarget(sx,sy,l1,l2,ppm,hx,hy):
-    slim = [15*math.pi/180, 90*math.pi/180]
-    elim = [45*math.pi/180, 90*math.pi/180]
-    d = 0
-    while d < 20:
-        stgt = (numpy.random.random() * (slim[1]-slim[0])) + slim[0]
-        etgt = (numpy.random.random() * (elim[1]-elim[0])) + elim[0]
-        ex,ey,tx,ty = joint_to_xy(sx,sy,stgt,etgt,l1,l2,ppm)
-        d = dist_to_target(hx,hy,tx,ty)
-    return tx,ty
 
 # Setup
 pygame.init()
@@ -111,6 +101,22 @@ s0 = 45*math.pi/180
 e0 = 90*math.pi/180
 s=s0
 e=e0
+ex,ey,hx,hy = joint_to_xy(sx,sy,s,e,l1,l2,ppm)
+
+movdist = 100   # mm
+numtgts = 8
+angs = numpy.linspace(0,2*math.pi,numtgts+1)[0:-1]
+tgts = numpy.zeros([numtgts,3])
+for i in range(numtgts):
+    tgts[i,:] = [i, hx + (movdist*math.cos(angs[i])), hy + (movdist*math.sin(angs[i]))]
+
+numblocks = 2
+tgtlist = numpy.zeros([numtgts*numblocks,3])
+for i in range(numblocks):
+    tmp = tgts.copy()
+    numpy.random.shuffle(tmp)
+    tgtlist[i*numtgts:(i*numtgts)+8,:] = tmp.copy()
+ntrials = numtgts * numblocks
 
 # initial vel (rad/s)
 sd=0.0
@@ -140,8 +146,8 @@ score = 0
 timelimit = 10.0
 
 # target
-hx,hy = 0.0,0.0
-tx,ty = getnewtarget(sx,sy,l1,l2,ppm,hx,hy)
+trialnum = 0
+tn,tx,ty = tgtlist[trialnum,:]
 
 print "saving to log file %s.asc" % sys.argv[1]
 fid = open(sys.argv[1] + ".asc","w")
@@ -151,9 +157,7 @@ spacebarhit = False
 tprev = time.clock()
 
 # -------- Main Program Loop -----------
-while done==False:
-    if ttotal >= timelimit:
-        done=True
+while done == False:
     # ALL EVENT PROCESSING SHOULD GO BELOW THIS COMMENT
     for event in pygame.event.get(): # User did something
         if event.type == pygame.QUIT: # If user clicked close
@@ -248,9 +252,31 @@ while done==False:
 
     # target hit detection
     tardist = dist_to_target(hx,hy,tx,ty)
-    if  tardist < targetsize:
+    if (tardist < targetsize):
         score = score + 1
-        tx,ty = getnewtarget(sx,sy,l1,l2,ppm,hx,hy)
+        if trialnum < ntrials-1:
+            trialnum += 1
+            tn,tx,ty = tgtlist[trialnum,:]
+            sd=0.0
+            ed=0.0
+            sdd=0.0
+            edd=0.0
+            ksf = 0.0
+            kse = 0.0
+            kef = 0.0
+            kee = 0.0
+            sf = 0.0
+            se = 0.0
+            ef = 0.0
+            ee = 0.0
+            s0 = 45*math.pi/180
+            e0 = 90*math.pi/180
+            s=s0
+            e=e0
+            ex,ey,hx,hy = joint_to_xy(sx,sy,s,e,l1,l2,ppm)
+            timeintgt = 0.0
+        else:
+            done = True
  
     # ALL GAME LOGIC SHOULD GO ABOVE THIS COMMENT    
  
@@ -269,15 +295,15 @@ while done==False:
     pygame.draw.ellipse(screen,red,[tx,ty,targetsize*2,targetsize*2],0)
     pygame.draw.ellipse(screen,black,[hx-ballsize,hy-ballsize,ballsize*2,ballsize*2],0)
 
-    printText("Score:", "MS Comic Sans", 30, 10, 10, red)
-    printText(repr(score), "MS Comic Sans", 30, 10, 35, red)
+    printText("Trial:", "MS Comic Sans", 30, 10, 10, red)
+    printText(repr(trialnum+1), "MS Comic Sans", 30, 10, 35, red)
 
     printText("controls:  d f j k", "MS Comic Sans", 30, ssize[0]/2 - 80, 10, red)
     printText("reset:  SPACEBAR", "MS Comic Sans", 30, ssize[0]/2 - 80, 35, red)
     printText("toggle arm:  TAB", "MS Comic Sans", 30, ssize[0]/2 - 80, 60, red)
 
     printText("Time:", "MS Comic Sans", 30, ssize[0]-100, 10, red)
-    printText(repr(round(timelimit-ttotal,1)), "MS Comic Sans", 30, ssize[0]-100, 35, red)
+    printText(repr(round(ttotal,1)), "MS Comic Sans", 30, ssize[0]-100, 35, red)
  
     # ALL CODE TO DRAW SHOULD GO ABOVE THIS COMMENT
       
