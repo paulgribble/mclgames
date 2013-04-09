@@ -249,6 +249,8 @@ while done == False:
     e = e + (ed*dti)
 
     ex,ey,hx,hy = joint_to_xy(sx,sy,s,e,l1,l2,ppm)
+    
+    tb = 0
 
     # target hit detection
     tardist = dist_to_target(hx,hy,tx,ty)
@@ -273,6 +275,7 @@ while done == False:
             e0 = 90*math.pi/180
             s=s0
             e=e0
+            tb=1
             ex,ey,hx,hy = joint_to_xy(sx,sy,s,e,l1,l2,ppm)
             timeintgt = 0.0
         else:
@@ -280,7 +283,7 @@ while done == False:
  
     # ALL GAME LOGIC SHOULD GO ABOVE THIS COMMENT    
  
-    fid.write("%9.5f,%9.5f,%9.5f,%9.5f,%9.5f,%9.5f,%9.5f,%9.5f,%9.5f,%9.5f,%9.5f,%9.5f,%9.5f,%9.5f,%9.5f,%9.5f,%9.5f,%9.5f,%9.5f,%9.5f,%9d\n" % (ttotal,score,tx,ty,hx,hy,s,e,sd,ed,sdd,edd,sf,se,ef,ee,ksf,kse,kef,kee,spacebarhit))
+    fid.write("%9.5f,%9.5f,%9.5f,%9.5f,%9.5f,%9.5f,%9.5f,%9.5f,%9.5f,%9.5f,%9.5f,%9.5f,%9.5f,%9.5f,%9.5f,%9.5f,%9.5f,%9.5f,%9.5f,%9.5f,%9.5f,%9.5f,%9d\n" % (ttotal,score,tb,tn,tx,ty,hx,hy,s,e,sd,ed,sdd,edd,sf,se,ef,ee,ksf,kse,kef,kee,spacebarhit))
     spacebarhit = False
 
     # ALL CODE TO DRAW SHOULD GO BELOW THIS COMMENT
