@@ -269,7 +269,7 @@ pygame.time.wait(2000)
 pygame.quit ()
 
 # turn of mouse acceleration
-os.system("xinput --set-prop 8 267 1.0")
+os.system("xinput --set-prop 8 267 10.0")
 # slow down speed gain to make 1cm on table == 1cm on screen
 os.system("xinput --set-prop 8 265 1.0")
 # note "8" is the device id and may be different on other machines
