@@ -8,11 +8,19 @@
 # experimenter controls weights on two cost parameters:
 # movement time and movement curvature at the 50% point
 
+# NOTES
+# on a per-subject basis, do a calibration block where xdev_des = 0.0 and speed_des = 0.500
+# measure variance in each control df
+# then scale feedback gains accordingly
+# this way relationship between feedback and control df is equalized across df and across subjects
+
+
 import pygame
 import numpy
 import math
 import sys
 import time
+import os
 
 numpy.random.seed(int(time.time()))
 
@@ -38,16 +46,23 @@ def printText(txtText, Textfont, Textsize , Textx, Texty, Textcolor):
     # put the label object on the screen at point Textx, Texty
     screen.blit(label, (Textx, Texty))
 
+# turn of mouse acceleration
+os.system("xinput --set-prop 8 267 1.0")
+# slow down speed gain to make 1cm on table == 1cm on screen
+os.system("xinput --set-prop 8 265 4.25")
+# note "8" is the device id and may be different on other machines
+
 # Setup
 pygame.init()
    
 # Set the width and height of the screen [width,height]
-ssize=[800,800]
+ssize=[800,700]
 screen=pygame.display.set_mode(ssize)
 
-endzone_height = 300 # pixels
+endzone_height = 100 # pixels
 endzone1 = endzone_height
 endzone2 = ssize[1]-endzone_height
+eoffset = 10
 
 pygame.display.set_caption("yawn")
   
@@ -77,7 +92,8 @@ prevstate = 0
 # inter-beep interval
 ibi = 0
 
-beep1 = pygame.mixer.Sound('23338__altemark__pong.wav')
+#beep1 = pygame.mixer.Sound('23338__altemark__pong.wav')
+beep1 = pygame.mixer.Sound('newpong.wav')
 #beep1 = pygame.mixer.Sound('beep-3.wav')
 
 runtime = 0.0
@@ -86,13 +102,15 @@ xdev = 0.0
 cost = 0.0
 cost1 = 0.0
 cost2 = 0.0
-coins = 100
+coins = 1000
 
 # SET UP THE COST FUNCTION WEIGHTS AND DESIRED VALUES
-W1 = 0.100       # on xdev
-des_xdev = 50    # pixels
-W2 = 10.00       # on timing
-des_time = 0.250 # seconds
+W1 = 0.100        # on xdev
+#W1 = 0.000       # on xdev
+des_xdev = 80      # pixels
+W2 = 100.00        # on timing
+#W2 = 0.0
+des_time = 0.500  # seconds
 
 donetrial = False
 ntrials = 0
@@ -101,6 +119,12 @@ xstart = 0.0
 xdev = 0.0
 xprev = 0.0
 yprev = 0.0
+
+showtraj = False
+showtrajcount = 0
+showtrajframes = int(dt * 0.250) # seconds
+
+movdir = 0 # 0=forward, 1=backward
 
 # -------- Main Program Loop -----------
 while done == False:
@@ -136,27 +160,42 @@ while done == False:
         beep1.play()
         runtime = 0.0
         xstart = mx
+        # which direction?
+        if ( (prevstate == 1) and (state == 2) ):
+            movdir = 0
+        elif ( (prevstate == 3) and (state == 2) ):
+            movdir = 1
 
-    # crossing midpoint?
-    if ( (state == 2) and ( (yprev < (ssize[1]/2)) and (my >= ssize[1]/2) ) or ((yprev >= (ssize[1]/2)) and (my < ssize[1]/2)) ):
-        xmid = ((xprev + mx) / 2.0)
-  
     # field to endzone?
     if ( (prevstate == 2) and ((state == 1) or (state == 3)) ):
         beep1.play()
         finishtime = runtime
         donetrial = True
         ntrials = ntrials + 1
-        xmid = mx # if endzone is the key
-        xdev = abs(xmid - xstart)
+        xend = mx # if endzone is the key
+        if (movdir == 0):
+            xdev = (xend - xstart)
+        elif (movdir == 1):
+            xdev = (xstart - xend)
         cost1 = (W1*abs(xdev-des_xdev))
         cost2 = (W2*abs(finishtime-des_time))
         cost = cost1 + cost2
         coins = coins - int(cost)
+        # flag to show trajectory slant
+        showtraj = True
+        showtrajcount = 0
         if (ntrials == des_trials):
             done = True
     else:
         donetrial = False
+
+    if (showtraj == True):
+        showtrajcount = showtrajcount + 1
+
+    if ( (showtrajcount <= showtrajframes) and (showtraj == True) ):
+        showtraj = True
+    else:
+        showtraj = False
 
     # ALL GAME LOGIC SHOULD GO ABOVE THIS COMMENT    
  
@@ -168,12 +207,23 @@ while done == False:
     screen.fill(white)
     
     # draw endzone lines
-    pygame.draw.lines(screen,red,False,[(0,endzone1),(ssize[0],endzone1)],1)
-    pygame.draw.lines(screen,red,False,[(0,endzone2),(ssize[0],endzone2)],1)
+    pygame.draw.lines(screen,red,False,[(0,endzone1-eoffset),(ssize[0],endzone1-eoffset)],1)
+    pygame.draw.lines(screen,red,False,[(0,endzone2+eoffset),(ssize[0],endzone2+eoffset)],1)
 
-    if ((my<endzone1) or (my>endzone2)):
-        # draw cursor
-        pygame.draw.ellipse(screen,red,[mx,my,cursorsize*2,cursorsize*2],0)
+#    if ((my<endzone1) or (my>endzone2)):
+#        # draw cursor
+#        pygame.draw.ellipse(screen,red,[mx,my,cursorsize*2,cursorsize*2],0)
+    pygame.draw.ellipse(screen,red,[mx,my,cursorsize*2,cursorsize*2],0)
+
+    # show trajectory slant?
+    if (showtraj == True):
+        if (movdir == 0):
+            yez1 = endzone1 - eoffset
+            yez2 = endzone2 + eoffset
+        elif (movdir == 1):
+            yez1 = endzone2 + eoffset
+            yez2 = endzone1 - eoffset
+        pygame.draw.lines(screen,blue,False,[(xstart,yez1),(xend,yez2)],1)
 
     # show some stuff to the user
     printText(repr(int(des_trials-ntrials)),  "MS Comic Sans", 30, ssize[0]/2 - 50, 10, black)
@@ -211,12 +261,18 @@ while done == False:
 # on exit if running from IDLE.
 
 screen.fill(white)
-printText(repr(int(coins)), "MS Comic Sans", ssize[1]/2, ssize[0]/2, 50, black)
+printText(repr(int(coins)), "MS Comic Sans", 200, 250, 300, black)
 pygame.display.flip()
 
-pygame.time.delay(5000)
+pygame.time.wait(2000)
 
 pygame.quit ()
+
+# turn of mouse acceleration
+os.system("xinput --set-prop 8 267 1.0")
+# slow down speed gain to make 1cm on table == 1cm on screen
+os.system("xinput --set-prop 8 265 1.0")
+# note "8" is the device id and may be different on other machines
 
 fid.close()
 fid2.close()
