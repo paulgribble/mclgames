@@ -107,14 +107,19 @@ coins = 1000
 # SET UP THE COST FUNCTION WEIGHTS AND DESIRED VALUES
 W1 = 0.100        # on xdev
 #W1 = 0.000       # on xdev
-des_xdev = 80      # pixels
+#des_xdev = 80      # pixels
 W2 = 100.00        # on timing
 #W2 = 0.0
-des_time = 0.500  # seconds
+#des_time = 0.500  # seconds
+
+# input arguments
+des_xdev = int(sys.argv[2])
+des_time = float(sys.argv[3])
+des_trials = int(sys.argv[4])
 
 donetrial = False
 ntrials = 0
-des_trials = 50
+#des_trials = 50
 xstart = 0.0
 xdev = 0.0
 xprev = 0.0
@@ -125,6 +130,8 @@ showtrajcount = 0
 showtrajframes = int(dt * 0.250) # seconds
 
 movdir = 0 # 0=forward, 1=backward
+
+print "%s %d %6.3f %d" % (sys.argv[1],des_xdev,des_time,des_trials)
 
 # -------- Main Program Loop -----------
 while done == False:
@@ -241,8 +248,8 @@ while done == False:
 
     # write log
     if (donetrial == True):
-        fid2.write("%3d %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %d\n" % (ntrials,W1,W2,des_xdev,des_time,xdev,finishtime,cost,coins))
-        print "%3d %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %d" % (ntrials,W1,W2,des_xdev,des_time,xdev,finishtime,cost,coins)
+        fid2.write("%3d %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %d %d\n" % (ntrials,W1,W2,des_xdev,des_time,xdev,finishtime,cost,int(cost),coins))
+        print "%3d %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %d %d" % (ntrials,W1,W2,des_xdev,des_time,xdev,finishtime,cost,int(cost),coins)
   
     # Limit to dt frames per second
     clock.tick(dt)
