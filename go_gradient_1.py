@@ -42,14 +42,14 @@ def printText(txtText, Textfont, Textsize , Textx, Texty, Textcolor):
 pygame.init()
    
 # Set the width and height of the screen [width,height]
-ssize=[800,800]
+ssize=[800,400]
 screen=pygame.display.set_mode(ssize)
 
-pygame.display.set_caption("yawn")
-
-endzone_height = 150 # pixels
+endzone_height = 80 # pixels
 endzone1 = endzone_height
 endzone2 = ssize[1]-endzone_height
+
+pygame.display.set_caption("yawn")
   
 #Loop until done
 done=False
@@ -86,6 +86,8 @@ xdev = 0.0
 cost = 0.0
 cost1 = 0.0
 cost2 = 0.0
+
+# SET UP THE COST FUNCTION WEIGHTS AND DESIRED VALUES
 W1 = 1.0
 W2 = 100.0
 des_time = 0.750
@@ -200,7 +202,7 @@ while done == False:
 
     # write log
     if (donetrial == True):
-        fid2.write("%3d %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f\n" % (ntrials,des_xdev,des_time,W1,W2,xdev,finishtime,cost))
+        fid2.write("%3d %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f\n" % (ntrials,W1,W2,des_xdev,des_time,xdev,finishtime,cost))
   
     # Limit to dt frames per second
     clock.tick(dt)
