@@ -42,10 +42,10 @@ def printText(txtText, Textfont, Textsize , Textx, Texty, Textcolor):
 pygame.init()
    
 # Set the width and height of the screen [width,height]
-ssize=[800,400]
+ssize=[800,800]
 screen=pygame.display.set_mode(ssize)
 
-endzone_height = 80 # pixels
+endzone_height = 300 # pixels
 endzone1 = endzone_height
 endzone2 = ssize[1]-endzone_height
 
@@ -66,7 +66,7 @@ fid2 = open(sys.argv[1] + ".log","w")
 
 spacebarhit = False
 
-# frames rate
+# frame rate
 dt = 100
 ttotal = 0.0
 fps = dt
@@ -86,15 +86,17 @@ xdev = 0.0
 cost = 0.0
 cost1 = 0.0
 cost2 = 0.0
+coins = 100
 
 # SET UP THE COST FUNCTION WEIGHTS AND DESIRED VALUES
-W1 = 1.0
-W2 = 100.0
-des_time = 0.750
-des_xdev = 30
+W1 = 0.100       # on xdev
+des_xdev = 50    # pixels
+W2 = 10.00       # on timing
+des_time = 0.250 # seconds
 
 donetrial = False
 ntrials = 0
+des_trials = 50
 xstart = 0.0
 xdev = 0.0
 xprev = 0.0
@@ -131,6 +133,7 @@ while done == False:
  
     # endzone to field?
     if ( ((prevstate == 1) or (prevstate == 3)) and (state == 2) ):
+        beep1.play()
         runtime = 0.0
         xstart = mx
 
@@ -140,13 +143,18 @@ while done == False:
   
     # field to endzone?
     if ( (prevstate == 2) and ((state == 1) or (state == 3)) ):
+        beep1.play()
         finishtime = runtime
         donetrial = True
         ntrials = ntrials + 1
+        xmid = mx # if endzone is the key
         xdev = abs(xmid - xstart)
         cost1 = (W1*abs(xdev-des_xdev))
         cost2 = (W2*abs(finishtime-des_time))
         cost = cost1 + cost2
+        coins = coins - int(cost)
+        if (ntrials == des_trials):
+            done = True
     else:
         donetrial = False
 
@@ -167,29 +175,10 @@ while done == False:
         # draw cursor
         pygame.draw.ellipse(screen,red,[mx,my,cursorsize*2,cursorsize*2],0)
 
-    # draw mouse x,y position
-#    printText(repr(mx), "MS Comic Sans", 30, ssize[0]-100, 35, black)
-#    printText(repr(my), "MS Comic Sans", 30, ssize[0]-50, 35, black)
-
-    # draw total time and frame rate
-#    printText(repr(round(fps*1000)/1000), "MS Comic Sans", 30, 150, 35, black)
-#    printText(repr(round(ttotal*1000)/1000), "MS Comic Sans", 30, 50, 35, black)
-
-    # draw runtime and finishtime
-#    printText(repr(round(runtime*1000)/1000), "MS Comic Sans", 30, 150, 85, black)
-#    printText(repr(round(finishtime*1000)/1000), "MS Comic Sans", 30, 50, 85, black)
-
-    # draw state
-#    printText(repr(state), "MS Comic Sans", 30, ssize[0]/2, 35, black)
-
-    # xdev, finishtime, cost
-#    printText(repr(round(cost1*1000)/1000), "MS Comic Sans", 30, 50, 10, black)
-#    printText(repr(round(cost2*1000)/1000), "MS Comic Sans", 30, 150, 10, black)
-    printText(repr(round(cost*1000)/1000), "MS Comic Sans", 30, ssize[0]/2, 10, black)
-
-    # sound
-    if (abs(state-prevstate)==1):
-        beep1.play()
+    # show some stuff to the user
+    printText(repr(int(des_trials-ntrials)),  "MS Comic Sans", 30, ssize[0]/2 - 50, 10, black)
+    printText(repr(int(cost)),  "MS Comic Sans", 30, ssize[0]/2, 10, black)
+    printText(repr(int(coins)), "MS Comic Sans", 30, ssize[0]/2 + 50, 10, black)
 
     # ALL CODE TO DRAW SHOULD GO ABOVE THIS COMMENT
       
@@ -202,7 +191,8 @@ while done == False:
 
     # write log
     if (donetrial == True):
-        fid2.write("%3d %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f\n" % (ntrials,W1,W2,des_xdev,des_time,xdev,finishtime,cost))
+        fid2.write("%3d %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %d\n" % (ntrials,W1,W2,des_xdev,des_time,xdev,finishtime,cost,coins))
+        print "%3d %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %d" % (ntrials,W1,W2,des_xdev,des_time,xdev,finishtime,cost,coins)
   
     # Limit to dt frames per second
     clock.tick(dt)
@@ -219,6 +209,13 @@ while done == False:
 # Close the window and quit.
 # If you forget this line, the program will 'hang'
 # on exit if running from IDLE.
+
+screen.fill(white)
+printText(repr(int(coins)), "MS Comic Sans", ssize[1]/2, ssize[0]/2, 50, black)
+pygame.display.flip()
+
+pygame.time.delay(5000)
+
 pygame.quit ()
 
 fid.close()
