@@ -238,7 +238,7 @@ while done == False:
     printText(repr(int(coins)), "MS Comic Sans", 30, ssize[0]/2 + 50, 10, black)
 
     # ALL CODE TO DRAW SHOULD GO ABOVE THIS COMMENT
-      
+
 
     # Go ahead and update the screen with what we've drawn.
     pygame.display.flip()
@@ -246,7 +246,7 @@ while done == False:
     # write data to file
     fid.write("%6.3f %3d %3d %1d\n" % (ttotal,mx,my,state))
 
-    # write log
+    # write to logfile
     if (donetrial == True):
         fid2.write("%3d %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %d %d\n" % (ntrials,W1,W2,des_xdev,des_time,xdev,finishtime,cost,int(cost),coins))
         print "%3d %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %6.3f %d %d" % (ntrials,W1,W2,des_xdev,des_time,xdev,finishtime,cost,int(cost),coins)
