@@ -67,7 +67,7 @@ clock=pygame.time.Clock()
 pygame.mouse.set_visible(0)
  
 # time increment (frames per second)
-dt = 50
+dt = 10
 dti = 1.0/dt
 
 # arm geometry
@@ -149,7 +149,7 @@ timelimit = 10.0
 trialnum = 0
 tn,tx,ty = tgtlist[trialnum,:]
 
-print "saving to log file %s.asc" % sys.argv[1]
+print("saving to log file %s.asc" % sys.argv[1])
 fid = open(sys.argv[1] + ".asc","w")
 
 spacebarhit = False
@@ -324,7 +324,7 @@ while done == False:
 # If you forget this line, the program will 'hang'
 # on exit if running from IDLE.
 pygame.quit ()
-print score
+print(score)
 
 fid.close()
 

@@ -115,7 +115,7 @@ while done==False:
     # left,right,up,down
     xdd = acc[0,1] - acc[0,0]
     ydd = acc[0,3] - acc[0,2]
-    print xdd,ydd
+    print(xdd,ydd)
 #    xgrav = 0.0
 #    ygrav = ak/2*dti
     xgrav = (ak/2*dti) * math.cos(2*math.pi*ttotal/10.0)
